@@ -14,6 +14,9 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 public class ApiExplorerApiController {
 
     private ApiExplorerAPI api;
@@ -30,8 +33,10 @@ public class ApiExplorerApiController {
         JSONParser jsonParser = new JSONParser();
         JSONObject resultJsonObj = (JSONObject) jsonParser.parse(jsonString);
         JSONObject resultJsonObj0 = (JSONObject) resultJsonObj.get("response");
+        System.out.println(resultJsonObj0);
         JSONObject resultJsonObj1 = (JSONObject) resultJsonObj0.get("body");
         JSONObject resultJsonObj2 = (JSONObject) resultJsonObj1.get("items");
+        System.out.println(resultJsonObj2);
         JSONArray resultJsonArray = (JSONArray) resultJsonObj2.get("item");
         return resultJsonArray;
     }
@@ -89,21 +94,42 @@ public class ApiExplorerApiController {
 
 
     public void fetchData() throws IOException, ParseException {
-        String urlString = api.buildUrl();
-        HttpURLConnection conn = api.createConnection(urlString);
-        String response = api.getResponse(conn);
+        String[] Sttn_num = { "90" , "93" , "95" , "98" , "99" , "100", "101", "102", "104", "105", "106", "108", "112", "114", "115", "119", "121", "127", "129", "130", "131"
+                            , "133", "135", "136", "137", "138", "140", "143", "146", "152", "155", "156", "159", "162", "165", "168", "169", "170", "172", "174", "177", "184"
+                            , "185", "188", "189", "192", "201", "202", "203", "211", "212", "216", "217", "221", "226", "232", "235", "236", "238", "239"," 243", "244", "245"
+                            , "247", "248", "251", "252", "253", "254", "255", "257", "258", "259", "260", "261", "262", "263", "264", "266", "268", "271", "272", "273", "276"
+                            , "277", "278", "279", "281", "283", "284", "285", "288", "289", "294", "295"};
 
-        JSONArray jsonArray = parseJson(response);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate startDate = LocalDate.parse("20230101", formatter);
+        LocalDate endDate = LocalDate.parse("20230411", formatter);
 
-        view.render(jsonArray);
+        for (String Sttn : Sttn_num) {
+            LocalDate currentDate = startDate;
+            while (!currentDate.isAfter(endDate)) {
+                LocalDate nextDate = currentDate.plusDays(1);
 
-        List<ApiExplorerData> dataList = processData(jsonArray);
-        view.renderSqlInsertQuery(dataList);
+                String startDateString = currentDate.format(formatter);
+                String endDateString = nextDate.format(formatter);
 
-        for (ApiExplorerData data0 : dataList) {
-            String insertSql = data0.toSqlInsertQuery();
-            dbConnection.executeInsertQuery(insertSql);
+                String urlString = api.buildUrl(startDateString, "01", endDateString, "01", "100", Sttn);
+                HttpURLConnection conn = api.createConnection(urlString);
+                String response = api.getResponse(conn);
+
+                JSONArray jsonArray = parseJson(response);
+
+                view.render(jsonArray);
+
+                List<ApiExplorerData> dataList = processData(jsonArray);
+                view.renderSqlInsertQuery(dataList);
+
+                for (ApiExplorerData data0 : dataList) {
+                    String insertSql = data0.toSqlInsertQuery();
+                    dbConnection.executeInsertQuery(insertSql);
+                }
+
+                currentDate = nextDate;
+            }
         }
-
     }
 }

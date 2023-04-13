@@ -1,5 +1,7 @@
 package api_dev_0.air_info.model;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 
 public class ApiExplorerData {
@@ -398,58 +400,70 @@ public class ApiExplorerData {
 
         String values =
                 prepareValue(getStnId()) + "," +
-                        prepareValue(getTm()) + ",'" +
-                        getStnNm() + "'," +
-                        prepareValue(getRnum()) + "," +
-                        prepareValue(getM03Te()) + "," +
-                        prepareValue(getM02Te()) + "," +
-                        prepareValue(getM01Te()) + "," +
-                        prepareValue(getM005Te()) + "," +
-                        prepareValue(getTs()) + "," +
-                        prepareValue(getDmstMtphNo()) + "," +
-                        prepareValue(getGndSttCd()) + "," +
-                        prepareValue(getVs()) + "," +
-                        prepareValue(getLcsCh()) + ",'" +
-                        getClfmAbbrCd() + "'," +
-                        prepareValue(getDc10LmcsCa()) + "," +
-                        prepareValue(getDc10Tca()) + "," +
-                        prepareValue(getHr3Fhsc()) + "," +
-                        prepareValue(getDsnw()) + "," +
-                        prepareValue(getIcsr()) + "," +
-                        prepareValue(getSs()) + ",'" +
-                        getSsQcflag() + "'," +
-                        prepareValue(getPs()) + ",'" +
-                        getPsQcflag() + "'," +
-                        prepareValue(getPa()) + ",'" +
-                        getPaQcflag() + ",'" +
-                        prepareValue(getTd()) + "," +
-                        prepareValue(getPv()) + "," +
-                        prepareValue(getHm()) + ",'" +
-                        getHmQcflag() + "'," +
-                        prepareValue(getWd()) + ",'" +
-                        getWdQcflag() + "'," +
-                        prepareValue(getWs()) + ",'" +
-                        getWsQcflag() + "'," +
-                        prepareValue(getRn()) + ",'" +
-                        getRnQcflag() + "'," +
-                        prepareValue(getTa()) + ",'" +
-                        getTaQcflag() + "'," +
-                        prepareValue(getTsQcflg()) ;
+                prepareValue(getTm()) + "," +
+                prepareValue(getStnNm()) + "," +
+                prepareValue(getRnum()) + "," +
+                prepareValue(getM03Te()) + "," +
+                prepareValue(getM02Te()) + "," +
+                prepareValue(getM01Te()) + "," +
+                prepareValue(getM005Te()) + "," +
+                prepareValue(getTs()) + "," +
+                prepareValue(getDmstMtphNo()) + "," +
+                prepareValue(getGndSttCd()) + "," +
+                prepareValue(getVs()) + "," +
+                prepareValue(getLcsCh()) + "," +
+                prepareValue(getClfmAbbrCd()) + "," +
+                prepareValue(getDc10LmcsCa()) + "," +
+                prepareValue(getDc10Tca()) + "," +
+                prepareValue(getHr3Fhsc()) + "," +
+                prepareValue(getDsnw()) + "," +
+                prepareValue(getIcsr()) + "," +
+                prepareValue(getSs()) + "," +
+                prepareValue(getSsQcflag()) + "," +
+                prepareValue(getPs()) + "," +
+                prepareValue(getPsQcflag()) + "," +
+                prepareValue(getPa()) + "," +
+                prepareValue(getPaQcflag()) + "," +
+                prepareValue(getTd()) + "," +
+                prepareValue(getPv()) + "," +
+                prepareValue(getHm()) + "," +
+                prepareValue(getHmQcflag()) + "," +
+                prepareValue(getWd()) + "," +
+                prepareValue(getWdQcflag()) + "," +
+                prepareValue(getWs()) + "," +
+                prepareValue(getWsQcflag()) + "," +
+                prepareValue(getRn()) + "," +
+                prepareValue(getRnQcflag()) + "," +
+                prepareValue(getTa()) + "," +
+                prepareValue(getTaQcflag()) + "," +
+                prepareValue(getTsQcflg()) ;
 
 
         return "INSERT INTO weather_data (" + String.join(",", columns) + ") VALUES (" + values + ")";
     }
     // 숫자형에서 null 인 경우 처리
     private String prepareValue(Object value) {
+        if (value instanceof String) {
+            String stringValue = (String) value;
+            if (stringValue.isEmpty()) {
+                return "NULL";
+            } else if (isDatePattern(stringValue)) {
+                return "'" + stringValue + "'";
+            } else {
+                return "'" + stringValue + "'";
+            }
+        }
+
         if (value == null || !isParsableAsNumber(value)) {
             return "NULL";
-        } else if (value instanceof String || value instanceof LocalDateTime) {
+        } else if (value instanceof LocalDateTime) {
             return "'" + value.toString() + "'";
         } else {
             return value.toString();
         }
     }
-    //투입값이 숫자인지 아닌지 구분
+
+    // 투입값이 숫자인지 아닌지 구분
     private boolean isParsableAsNumber(Object value) {
         if (value instanceof Number) {
             return true;
@@ -457,6 +471,9 @@ public class ApiExplorerData {
 
         if (value instanceof String) {
             String stringValue = (String) value;
+            if (isDatePattern(stringValue)) {
+                return false;
+            }
             try {
                 Double.parseDouble(stringValue);
                 return true;
@@ -465,5 +482,16 @@ public class ApiExplorerData {
             }
         }
         return false;
+    }
+
+    private boolean isDatePattern(String value) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        dateFormat.setLenient(false);
+        try {
+            dateFormat.parse(value);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
     }
 }

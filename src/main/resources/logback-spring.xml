@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="15 seconds">
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <property name="LOGS" value="/Users/jeonchansu/Desktop"/>
+    <property name="LOG_PATTERN" value="%d{yy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <appender name="CONSOLE-APPENDER" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${LOG_PATTERN}</Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/api_explorer.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>${LOG_PATTERN}</Pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${LOGS}/api_explorer_%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- keep 30 days' worth of history -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <root level="ALL">
+        <appender-ref ref="CONSOLE-APPENDER"/>
+        <appender-ref ref="FILE-APPENDER"/>
+    </root>
+</configuration>
